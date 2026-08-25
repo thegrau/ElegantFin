@@ -4532,7 +4532,8 @@ for extended styling, use the add-on */
     position: relative;
     aspect-ratio: 16 / 9;
     overflow: hidden;
-    border-radius: var(--smallRadius);
+    /* Meme arrondi que les affiches du theme (.cardScalable) */
+    border-radius: var(--largeRadius);
     background: hsla(0, 0%, 100%, 0.04);
     box-shadow: var(--cardShadow);
 }
