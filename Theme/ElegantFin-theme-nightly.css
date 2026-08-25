@@ -4414,3 +4414,139 @@ for extended styling, use the add-on */
     /* --- Signature du pied de page --- */
     --elegantFinFooterText: "Helou / ED209";
 }
+
+/* ==========================================================================
+   ===== HELOU : FICHES DE MEDIA ============================================
+   Accompagne Theme/assets/js/helou-detail.js. Sans ce script, les cartouches
+   ne sont pas construites et cette section ne fait que masquer des elements.
+   ========================================================================== */
+
+/* --- Emplacements d'origine, remplaces par les cartouches --- */
+.itemMiscInfo-primary,
+.itemMiscInfo-secondary,
+.detailsGroupItem.genresGroup,
+.detailsGroupItem.studiosGroup {
+    display: none !important;
+}
+
+/* --- Notes : etoiles Jellyfin et score critique --- */
+.starRatingContainer,
+.mediaInfoCriticRating,
+.mediaInfoCriticRatingFresh,
+.mediaInfoCriticRatingRotten {
+    display: none !important;
+}
+
+/* --- Recommandations du bas de page --- */
+#similarCollapsible {
+    display: none !important;
+}
+
+/* --- Rangee de cartouches --- */
+.helou-info {
+    margin: 0.9em 0 0.4em 0;
+}
+.helou-chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5em;
+}
+.helou-chip {
+    background: hsla(0, 0%, 100%, 0.08);
+    border: var(--borderWidth) solid hsla(0, 0%, 100%, 0.08);
+    border-radius: 999px;
+    padding: 0.28em 0.85em;
+    margin: 0 !important;
+    font-size: 0.78em;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    line-height: 1.6;
+    white-space: nowrap;
+    color: var(--textColor);
+}
+
+/* Annee et duree en violet, comme sur le reste du theme */
+.helou-chip-year,
+.helou-chip-runtime {
+    background: var(--accentColor);
+    border-color: transparent;
+    color: #fff;
+}
+
+/* Qualite video : contour plutot que aplat, pour rester discret */
+.helou-chip-res,
+.helou-chip-codec,
+.helou-chip-sdr,
+.helou-chip-hdr {
+    background: transparent;
+    border-color: var(--borderColor);
+    color: var(--dimTextColor);
+}
+/* Le HDR merite d'etre repere d'un coup d'oeil */
+.helou-chip-hdr {
+    border-color: var(--accentColor);
+    color: var(--accentColor);
+}
+
+/* --- Heure de fin, sous les cartouches --- */
+.helou-endsat {
+    margin-top: 0.55em;
+    font-size: 0.82em;
+    font-weight: 500;
+    color: var(--dimTextColor);
+}
+
+/* --- Realisateurs et scenaristes, au-dessus de la distribution --- */
+.helou-crew {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4em 2.5em;
+    margin: 0 0 1.1em 0;
+}
+.helou-crew .detailsGroupItem {
+    display: flex !important;
+    align-items: baseline;
+    gap: 0.5em;
+    margin: 0;
+}
+.helou-crew .label {
+    font-size: 0.7em;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--dimTextColor);
+}
+
+/* --- Grille des images d'arriere-plan --- */
+.helou-backdrops {
+    margin-top: 1.5em;
+}
+.helou-backdrops-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16em, 1fr));
+    gap: 0.9em;
+}
+.helou-backdrop {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: var(--smallRadius);
+    background: hsla(0, 0%, 100%, 0.04);
+    box-shadow: var(--cardShadow);
+}
+.helou-backdrop img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.45s ease;
+}
+.helou-backdrop:hover img {
+    transform: scale(1.04);
+}
+
+@media (max-width: 50em) {
+    .helou-backdrops-grid { grid-template-columns: repeat(auto-fill, minmax(11em, 1fr)); }
+}
