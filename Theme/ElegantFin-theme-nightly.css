@@ -4367,3 +4367,50 @@ for extended styling, use the add-on */
 }
 
 /* basic styling for the Media Bar Plugin - end */
+
+/* ==========================================================================
+   ===== HELOU : SURCHARGE DE PALETTE =======================================
+   Neutralise le bleu/indigo d'origine au profit d'un gris neutre, et reserve
+   le violet a la selection et aux etats actifs.
+   Les luminosites d'origine sont conservees : seules la teinte et la
+   saturation changent, donc les contrastes restent identiques.
+   Bloc volontairement isole en fin de fichier pour survivre aux
+   "git fetch upstream" sans conflit.
+   ========================================================================== */
+:root {
+    /* --- Accent : violet, la seule couleur vive du theme --- */
+    --accentColor: hsl(258, 90%, 66%);
+    --accentHoverColor: hsl(255, 92%, 76%);
+    --semiTransparentAccentColor: hsla(258, 90%, 66%, 0.22);
+    --checkboxCheckedBgColor: hsl(258, 90%, 60%);
+    --highlightOutlineColor: hsl(258, 90%, 66%);
+    --btnSubmitColor: hsl(258, 70%, 48%);
+    --btnSubmitBorderColor: hsl(258, 90%, 70%);
+
+    /* --- Structure : gris neutres (teinte et saturation a zero) --- */
+    --borderColor: hsl(0, 0%, 32%);
+    --darkerBorderColor: hsl(0, 0%, 22%);
+    --selectorBackgroundColor: hsl(0, 0%, 24%);
+    --selectorBackgroundColorAlpha: hsla(0, 0%, 24%, 0.5);
+    --tableBodyColor: hsl(0, 0%, 15%);
+
+    /* --- Barre du haut et tiroir lateral --- */
+    --headerColor: hsla(0, 0%, 9%, 0.8);
+    --drawerColor: hsla(0, 0%, 9%, 0.9);
+    --headerColorGradient: linear-gradient(180deg, hsla(0, 0%, 9%, 0.95) 30%, 55%, transparent);
+    --headerColorGradientAlt: linear-gradient(180deg, hsl(0, 0%, 9%), 70%, transparent);
+
+    /* --- Fonds et degrades --- */
+    --darkerGradientPoint: hsl(0, 0%, 7%);
+    --lighterGradientPoint: hsl(0, 0%, 12%);
+    --darkerGradientPointAlpha: hsla(0, 0%, 7%, 0.85);
+    --lighterGradientPointAlpha: hsla(0, 0%, 12%, 0.85);
+    --gradientPointAlpha: hsla(0, 0%, 12%, 0.3);
+
+    /* --- Textes : gris neutres au lieu des gris froids --- */
+    --textColor: hsl(0, 0%, 84%);
+    --dimTextColor: hsl(0, 0%, 64%);
+
+    /* --- Signature du pied de page --- */
+    --elegantFinFooterText: "Helou / ED209";
+}
