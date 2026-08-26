@@ -4551,3 +4551,103 @@ for extended styling, use the add-on */
 @media (max-width: 50em) {
     .helou-backdrops-grid { grid-template-columns: repeat(auto-fill, minmax(11em, 1fr)); }
 }
+
+/* ==========================================================================
+   ===== HELOU : FINITIONS ==================================================
+   ========================================================================== */
+
+/* --- 1. Respiration entre le logo, les cartouches et les boutons ---------- */
+.detailLogo {
+    max-height: 34vh !important;
+    margin-bottom: 1.4em !important;
+}
+.nameContainer { margin-bottom: 0.2em; }
+.helou-info { margin-top: 1.4em !important; }
+.mainDetailButtons { margin-top: 1.2em !important; }
+
+/* --- 2a. Bloc gris devenu vide (genres et studio sont dans les cartouches) - */
+.itemDetailsGroup { display: none !important; }
+
+/* --- 2b. Bloc video/audio : cale a gauche, largeur limitee --------------- */
+.trackSelections {
+    grid-column: 1 / -1 !important;
+    justify-self: start !important;
+    width: auto !important;
+    max-width: 34em !important;
+}
+
+/* --- 2c. Icones video / audio / sous-titres en Material Symbols --------- */
+.trackSelections .selectLabel {
+    background-image: none !important;
+    font-size: 0 !important;
+    display: inline-flex;
+    align-items: center;
+}
+.trackSelections .selectLabel::before {
+    font-family: "Material Symbols Rounded", "Material Symbols Rounded Minimal";
+    font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+    font-size: 1.35rem;
+    line-height: 1;
+    color: var(--dimTextColor);
+    -webkit-font-feature-settings: "liga";
+    font-feature-settings: "liga";
+}
+.selectVideoContainer .selectLabel::before { content: "movie"; }
+.selectAudioContainer .selectLabel::before { content: "audiotrack"; }
+.selectSubtitlesContainer .selectLabel::before { content: "subtitles"; }
+.selectSourceContainer .selectLabel::before { content: "video_library"; }
+
+/* --- 3. Grille de backdrops : 4 colonnes, 1 seule sur mobile ------------- */
+.helou-backdrops-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+}
+@media (max-width: 50em) {
+    .helou-backdrops-grid { grid-template-columns: 1fr !important; }
+}
+
+/* --- 4. Liens externes (IMDb, TMDB, Trakt...) ---------------------------- */
+.itemExternalLinks { display: none !important; }
+
+/* --- 5. Synopsis plus lisible ------------------------------------------- */
+.detailSectionContent,
+.detailSectionContent .overview {
+    font-size: 1.06rem !important;
+    line-height: 1.62 !important;
+}
+
+/* --- 6. Plus de contour sur les images au repos -------------------------- */
+.cardScalable,
+.layout-mobile .cardScalable {
+    border-color: transparent !important;
+}
+
+/* --- 7. Bouton Lecture au survol : verre depoli, icone blanche ----------- */
+.cardOverlayContainer > .cardOverlayFab-primary,
+.listItemImageButton,
+.layout-mobile .cardOverlayButton-br:not([data-action="menu"]) > .cardOverlayButtonIcon {
+    background-color: hsla(0, 0%, 100%, 0.16) !important;
+    backdrop-filter: blur(12px) saturate(140%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    border: var(--borderWidth) solid hsla(0, 0%, 100%, 0.28) !important;
+    color: #fff !important;
+    box-shadow: 0 2px 10px hsla(0, 0%, 0%, 0.35);
+}
+.cardOverlayContainer > .cardOverlayFab-primary:hover,
+.listItemImageButton:hover {
+    background-color: hsla(0, 0%, 100%, 0.26) !important;
+    color: #fff !important;
+}
+
+/* --- 8. Contour au survol : violet d'accent, plus marque ----------------- */
+.card-hoverable:hover .cardScalable,
+.card-hoverable:hover .visualCardBox {
+    border-color: var(--accentColor) !important;
+    /* L'anneau externe epaissit le trait sans decaler la mise en page. */
+    box-shadow: 0 0 0 0.08em var(--accentColor), var(--cardShadow);
+}
+
+/* --- 9. Fiches de series : casting et equipe masques --------------------- */
+[data-helou-type="Series"] #castCollapsible,
+[data-helou-type="Series"] .helou-crew {
+    display: none !important;
+}

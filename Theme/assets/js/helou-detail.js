@@ -200,6 +200,9 @@
             info.className = 'helou-info';
             info.dataset.helouId = id;
 
+            /* Permet au CSS de cibler les series (casting et equipe masques). */
+            document.documentElement.dataset.helouType = item.Type || '';
+
             buildChips(item, info);
             host.parentNode.insertBefore(info, host.nextSibling);
 
