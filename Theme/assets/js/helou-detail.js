@@ -106,7 +106,15 @@
 
     function moveCrew() {
         var cast = document.querySelector('#castCollapsible');
-        if (!cast || cast.classList.contains('hide')) return;
+        var castVisible = cast && !cast.classList.contains('hide');
+
+        /* Point d'ancrage de repli : sans casting visible, on se rabat sur la
+           section de details. Sans ce repli, les groupes restaient dans
+           .itemDetailsGroup - masque par le theme - et disparaissaient. */
+        var ancre = castVisible ? cast
+                  : document.querySelector('.trackSelections')
+                  || document.querySelector('.detailSectionContent');
+        if (!ancre || !ancre.parentNode) return;
 
         var wrap = document.querySelector('.helou-crew');
         if (!wrap) {
@@ -119,8 +127,9 @@
             if (g && g.parentNode !== wrap) wrap.appendChild(g);
         });
 
-        if (wrap.children.length && wrap.parentNode !== cast.parentNode) {
-            cast.parentNode.insertBefore(wrap, cast);
+        if (wrap.children.length && !wrap.parentNode) {
+            if (castVisible) ancre.parentNode.insertBefore(wrap, ancre);
+            else ancre.parentNode.insertBefore(wrap, ancre.nextSibling);
         }
     }
 

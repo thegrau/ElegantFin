@@ -4651,3 +4651,89 @@ for extended styling, use the add-on */
 [data-helou-type="Series"] .helou-crew {
     display: none !important;
 }
+
+/* ==========================================================================
+   ===== HELOU : AJUSTEMENTS ================================================
+   ========================================================================== */
+
+/* --- 1. Plus aucun contour visible -------------------------------------- */
+.trackSelections,
+.mainDrawer, .navDrawer, .drawer-scroll-container,
+.cardOverlayContainer > .cardOverlayFab-primary,
+.listItemImageButton,
+.layout-mobile .cardOverlayButton-br:not([data-action="menu"]) > .cardOverlayButtonIcon,
+.visualCardBox, .paperList,
+.layout-desktop .visualCardBox,
+.skinHeader, .appBar {
+    border: none !important;
+}
+
+/* --- 2. Bloc video / audio : verre depoli, un tiers de large en desktop --- */
+.trackSelections {
+    background: hsla(0, 0%, 100%, 0.06) !important;
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border-radius: var(--largeRadius) !important;
+    box-shadow: none !important;
+}
+@media (min-width: 50em) {
+    .trackSelections {
+        width: 33% !important;
+        min-width: 24em !important;
+        max-width: none !important;
+    }
+}
+@media (max-width: 50em) {
+    .trackSelections { width: 100% !important; min-width: 0 !important; }
+}
+
+/* Les icones avaient une boite de 0x0 (font-size: 0 sur le label), donc elles
+   se superposaient au texte. On leur redonne une largeur reservee. */
+.trackSelections .selectLabel {
+    min-width: 2rem !important;
+    width: 2rem !important;
+    height: 1.6rem !important;
+    margin-right: 0.55rem !important;
+    flex: 0 0 2rem !important;
+    justify-content: flex-start;
+}
+
+/* --- 3. Synopsis : jamais tronque, plus de fleche de deroulement --------- */
+.overview-controls,
+.overview-expand,
+.detail-clamp-text-button {
+    display: none !important;
+}
+.detail-clamp-text,
+.overview.detail-clamp-text {
+    -webkit-line-clamp: unset !important;
+    line-clamp: unset !important;
+    max-height: none !important;
+    overflow: visible !important;
+    display: block !important;
+}
+
+/* --- 4. Ordre des blocs : synopsis, video/audio, chapitres, equipe, casting */
+.detailSectionContent { order: 0; }
+.trackSelections      { order: 1; }
+#scenesCollapsible    { order: 2; }
+.helou-crew           { order: 3; }
+#castCollapsible      { order: 4; }
+.helou-backdrops      { order: 5; }
+
+/* --- 5. Zone du logo : plus de chevauchement en desktop ------------------ */
+:root {
+    /* Le titre original en petit gris doublonnait avec le logo et le
+       chevauchait ; le logo suffit. */
+    --itemOriginalTitleVisibility: none;
+}
+.detailLogo {
+    max-height: 26vh !important;
+    margin-bottom: 2.4rem !important;
+}
+.layout-desktop .nameContainer,
+.layout-desktop .helou-info {
+    position: relative;
+    z-index: 2;
+}
+.layout-desktop .helou-info { margin-top: 2rem !important; }
