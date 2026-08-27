@@ -4723,8 +4723,11 @@ for extended styling, use the add-on */
      top: calc(100vh - --clearLogoBottomSpace - --primaryItemPageNegativeSpace)
    avec translateY(-100%). Plafonner sa hauteur ne liberait donc rien ; c'est
    l'ancrage qu'il faut remonter. Desktop uniquement, le mobile etant correct. */
-.layout-desktop {
-    --clearLogoBottomSpace: 14.5em;
+.layout-desktop body {
+    /* Les variables de gabarit sont posees sur `body` par le theme : une
+       redefinition sur `html` (.layout-desktop) est donc ecrasee pour tous
+       les descendants. Il faut cibler `body` lui-meme. */
+    --clearLogoBottomSpace: 15.5em;
 }
 .layout-desktop .nameContainer,
 .layout-desktop .helou-info {
