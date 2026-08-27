@@ -4558,7 +4558,6 @@ for extended styling, use the add-on */
 
 /* --- 1. Respiration entre le logo, les cartouches et les boutons ---------- */
 .detailLogo {
-    max-height: 34vh !important;
     margin-bottom: 1.4em !important;
 }
 .nameContainer { margin-bottom: 0.2em; }
@@ -4576,26 +4575,6 @@ for extended styling, use the add-on */
     max-width: 34em !important;
 }
 
-/* --- 2c. Icones video / audio / sous-titres en Material Symbols --------- */
-.trackSelections .selectLabel {
-    background-image: none !important;
-    font-size: 0 !important;
-    display: inline-flex;
-    align-items: center;
-}
-.trackSelections .selectLabel::before {
-    font-family: "Material Symbols Rounded", "Material Symbols Rounded Minimal";
-    font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
-    font-size: 1.35rem;
-    line-height: 1;
-    color: var(--dimTextColor);
-    -webkit-font-feature-settings: "liga";
-    font-feature-settings: "liga";
-}
-.selectVideoContainer .selectLabel::before { content: "movie"; }
-.selectAudioContainer .selectLabel::before { content: "audiotrack"; }
-.selectSubtitlesContainer .selectLabel::before { content: "subtitles"; }
-.selectSourceContainer .selectLabel::before { content: "video_library"; }
 
 /* --- 3. Grille de backdrops : 4 colonnes, 1 seule sur mobile ------------- */
 .helou-backdrops-grid {
@@ -4687,16 +4666,29 @@ for extended styling, use the add-on */
     .trackSelections { width: 100% !important; min-width: 0 !important; }
 }
 
-/* Les icones avaient une boite de 0x0 (font-size: 0 sur le label), donc elles
-   se superposaient au texte. On leur redonne une largeur reservee. */
-.trackSelections .selectLabel {
-    min-width: 2rem !important;
-    width: 2rem !important;
-    height: 1.6rem !important;
-    margin-right: 0.55rem !important;
-    flex: 0 0 2rem !important;
-    justify-content: flex-start;
+/* L'icone est portee par le CONTENEUR et non par le label : celui-ci restait
+   a une hauteur de 0 (font-size: 0 annule aussi la line-height), et le glyphe
+   debordait par-dessus le texte. */
+.trackSelections .selectLabel { display: none !important; }
+.trackSelections .selectContainer {
+    display: flex !important;
+    align-items: center;
+    gap: 0.6rem;
 }
+.trackSelections .selectContainer::before {
+    font-family: "Material Symbols Rounded", "Material Symbols Rounded Minimal";
+    font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+    font-size: 1.3rem;
+    line-height: 1;
+    flex: 0 0 auto;
+    color: var(--dimTextColor);
+    -webkit-font-feature-settings: "liga";
+    font-feature-settings: "liga";
+}
+.trackSelections .selectVideoContainer::before { content: "movie"; }
+.trackSelections .selectAudioContainer::before { content: "audiotrack"; }
+.trackSelections .selectSubtitlesContainer::before { content: "subtitles"; }
+.trackSelections .selectSourceContainer::before { content: "video_library"; }
 
 /* --- 3. Synopsis : jamais tronque, plus de fleche de deroulement --------- */
 .overview-controls,
@@ -4727,9 +4719,12 @@ for extended styling, use the add-on */
        chevauchait ; le logo suffit. */
     --itemOriginalTitleVisibility: none;
 }
-.detailLogo {
-    max-height: 26vh !important;
-    margin-bottom: 2.4rem !important;
+/* Le logo est en position: absolute, ancre par le bas :
+     top: calc(100vh - --clearLogoBottomSpace - --primaryItemPageNegativeSpace)
+   avec translateY(-100%). Plafonner sa hauteur ne liberait donc rien ; c'est
+   l'ancrage qu'il faut remonter. Desktop uniquement, le mobile etant correct. */
+.layout-desktop {
+    --clearLogoBottomSpace: 14.5em;
 }
 .layout-desktop .nameContainer,
 .layout-desktop .helou-info {
