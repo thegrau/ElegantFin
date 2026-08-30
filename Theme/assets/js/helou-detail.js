@@ -333,8 +333,8 @@
 
         var aide = document.createElement('div');
         aide.textContent = auto
-            ? 'Une bande-annonce est deja fournie par les metadonnees. Un lien saisi ici la remplacera.'
-            : 'Aucune bande-annonce dans les metadonnees. Colle un lien YouTube pour en definir une.';
+            ? 'Une bande-annonce est d\u00e9j\u00e0 fournie par les m\u00e9tadonn\u00e9es. Un lien saisi ici la remplacera.'
+            : 'Aucune bande-annonce dans les m\u00e9tadonn\u00e9es. Colle un lien YouTube pour en d\u00e9finir une.';
         aide.style.cssText = 'opacity:.65;font-size:.88em;margin-bottom:1.2em';
 
         var champ = document.createElement('input');
@@ -443,6 +443,8 @@
         if (!modele) return;
 
         var itemId = cibleMenu;
+        /* Les libelles visibles utilisent des echappements \uXXXX : le script est
+           servi sans charset explicite, l'encodage depend donc du document. */
         var b = modele.cloneNode(true);
         b.setAttribute('data-id', 'helou-trailer');
 
@@ -454,7 +456,7 @@
         var feuilles = [].slice.call(b.querySelectorAll('*')).filter(function (e) {
             return e.children.length === 0 && e.textContent.trim();
         });
-        if (feuilles.length) feuilles[0].textContent = 'Bande-annonce personnalisee';
+        if (feuilles.length) feuilles[0].textContent = 'Bande-annonce personnalis\u00e9e';
 
         /* On laisse Jellyfin fermer la feuille : son gestionnaire ignore les
            identifiants qu'il ne connait pas. */
