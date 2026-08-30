@@ -13,6 +13,8 @@
       d'arriere-plan de l'oeuvre consultee.
    4. Joue la bande-annonce en fond de fiche, a la place de l'image d'arriere-
       plan fixe. Muette et sans controles.
+   5. Ajoute au menu de l'oeuvre une entree permettant de designer manuellement
+      un lien YouTube, qui prend alors le pas sur celui des metadonnees.
 
    Le masquage des emplacements d'origine est fait en CSS (bloc HELOU du theme).
    ============================================================================ */
@@ -195,13 +197,18 @@
         return m ? m[1] : null;
     }
 
-    function trailerId(item) {
+    function trailerAuto(item) {
         var liste = item.RemoteTrailers || [];
         for (var i = 0; i < liste.length; i++) {
             var v = youtubeId(liste[i].Url);
             if (v) return v;
         }
         return null;
+    }
+
+    /* Le choix manuel prime ; a defaut on retombe sur les metadonnees TMDb. */
+    function trailerId(item) {
+        return manuels[item.Id] || trailerAuto(item);
     }
 
     function removeTrailer() {
@@ -257,6 +264,212 @@
         else removeTrailer();
     }
 
+    /* ------------------------------ choix manuel de la bande-annonce (menu) */
+
+    /* Stockage cote serveur, dans les preferences d'affichage de l'utilisateur :
+       le choix suit donc l'utilisateur d'un appareil a l'autre. Une seule cle,
+       porteuse d'un objet JSON, pour ne pas encombrer le bac de reglages que
+       Jellyfin partage avec ses propres options client. */
+    var CLE_PREFS = 'helouTrailers';
+    var ID_PREFS = 'helou-trailers';
+    var manuels = Object.create(null);
+    var prefsChargees = false;
+
+    function prefsClient() { return 'emby'; }
+
+    async function chargerManuels(ac) {
+        if (prefsChargees) return;
+        try {
+            var p = await ac.getDisplayPreferences(ID_PREFS, ac.getCurrentUserId(), prefsClient());
+            var brut = (p.CustomPrefs || {})[CLE_PREFS];
+            if (brut) manuels = JSON.parse(brut);
+        } catch (e) {
+            /* Premiere utilisation ou JSON illisible : on repart d'un objet vide */
+        }
+        prefsChargees = true;
+    }
+
+    async function enregistrerManuel(ac, itemId, videoId) {
+        /* Relecture avant ecriture : le bac de preferences est partage avec les
+           reglages client de Jellyfin, on ne doit pas ecraser le reste. */
+        var p = await ac.getDisplayPreferences(ID_PREFS, ac.getCurrentUserId(), prefsClient());
+        p.CustomPrefs = p.CustomPrefs || {};
+
+        var courant = Object.create(null);
+        try { if (p.CustomPrefs[CLE_PREFS]) courant = JSON.parse(p.CustomPrefs[CLE_PREFS]); } catch (e) {}
+
+        if (videoId) courant[itemId] = videoId;
+        else delete courant[itemId];
+
+        p.CustomPrefs[CLE_PREFS] = JSON.stringify(courant);
+        await ac.updateDisplayPreferences(ID_PREFS, p, ac.getCurrentUserId(), prefsClient());
+        manuels = courant;
+    }
+
+    /* --------------------------------------------------------- boite de saisie */
+
+    function fermerBoite() {
+        var d = document.querySelector('.helou-modale');
+        if (d) d.remove();
+    }
+
+    function ouvrirBoite(ac, itemId, titre, auto) {
+        fermerBoite();
+
+        var fond = document.createElement('div');
+        fond.className = 'helou-modale';
+        fond.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;'
+            + 'align-items:center;justify-content:center;background:rgba(0,0,0,.55);'
+            + 'backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)';
+
+        var carte = document.createElement('div');
+        carte.style.cssText = 'width:min(34em,92vw);padding:1.6em;border-radius:var(--largeRadius,14px);'
+            + 'background:hsla(0,0%,12%,.92);color:#fff;box-shadow:0 20px 60px rgba(0,0,0,.6);'
+            + 'font-size:1rem;line-height:1.5';
+
+        var h = document.createElement('div');
+        h.textContent = 'Bande-annonce de ' + titre;
+        h.style.cssText = 'font-size:1.15em;font-weight:600;margin-bottom:.35em';
+
+        var aide = document.createElement('div');
+        aide.textContent = auto
+            ? 'Une bande-annonce est deja fournie par les metadonnees. Un lien saisi ici la remplacera.'
+            : 'Aucune bande-annonce dans les metadonnees. Colle un lien YouTube pour en definir une.';
+        aide.style.cssText = 'opacity:.65;font-size:.88em;margin-bottom:1.2em';
+
+        var champ = document.createElement('input');
+        champ.type = 'url';
+        champ.placeholder = 'https://www.youtube.com/watch?v=...';
+        champ.value = manuels[itemId] ? 'https://www.youtube.com/watch?v=' + manuels[itemId] : '';
+        champ.style.cssText = 'width:100%;box-sizing:border-box;padding:.7em .9em;border-radius:8px;'
+            + 'border:1px solid hsla(0,0%,100%,.18);background:hsla(0,0%,100%,.06);color:#fff;'
+            + 'font-size:1em;outline:none';
+
+        var erreur = document.createElement('div');
+        erreur.style.cssText = 'min-height:1.4em;margin-top:.5em;font-size:.85em;color:#ff8a80';
+
+        var barre = document.createElement('div');
+        barre.style.cssText = 'display:flex;gap:.6em;justify-content:flex-end;margin-top:1em';
+
+        function bouton(texte, primaire) {
+            var b = document.createElement('button');
+            b.textContent = texte;
+            b.style.cssText = 'padding:.6em 1.2em;border-radius:999px;border:0;cursor:pointer;'
+                + 'font-size:.95em;font-family:inherit;'
+                + (primaire ? 'background:var(--accentColor,#8b5cf6);color:#fff'
+                            : 'background:hsla(0,0%,100%,.1);color:#fff');
+            return b;
+        }
+
+        var bAnnuler = bouton('Annuler', false);
+        bAnnuler.onclick = fermerBoite;
+
+        var bEffacer = null;
+        if (manuels[itemId]) {
+            bEffacer = bouton('Effacer', false);
+            bEffacer.onclick = async function () {
+                await enregistrerManuel(ac, itemId, null);
+                fermerBoite();
+                rafraichirTrailer(ac, itemId);
+            };
+        }
+
+        var bValider = bouton('Enregistrer', true);
+        bValider.onclick = async function () {
+            var v = champ.value.trim();
+            if (!v) { erreur.textContent = 'Colle un lien YouTube, ou utilise Effacer.'; return; }
+            var vid = youtubeId(v);
+            if (!vid) { erreur.textContent = 'Lien YouTube non reconnu.'; return; }
+            bValider.disabled = true;
+            try {
+                await enregistrerManuel(ac, itemId, vid);
+                fermerBoite();
+                rafraichirTrailer(ac, itemId);
+            } catch (e) {
+                bValider.disabled = false;
+                erreur.textContent = 'Enregistrement impossible.';
+            }
+        };
+
+        champ.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') bValider.click();
+            if (e.key === 'Escape') fermerBoite();
+        });
+        fond.addEventListener('click', function (e) { if (e.target === fond) fermerBoite(); });
+
+        barre.appendChild(bAnnuler);
+        if (bEffacer) barre.appendChild(bEffacer);
+        barre.appendChild(bValider);
+
+        carte.appendChild(h);
+        carte.appendChild(aide);
+        carte.appendChild(champ);
+        carte.appendChild(erreur);
+        carte.appendChild(barre);
+        fond.appendChild(carte);
+        document.body.appendChild(fond);
+        champ.focus();
+    }
+
+    /* Recalcule et remonte la bande-annonce sans recharger la page. */
+    async function rafraichirTrailer(ac, itemId) {
+        try {
+            var item = await ac.getItem(ac.getCurrentUserId(), itemId);
+            trailers[itemId] = (item.Type === 'Movie' || item.Type === 'Series')
+                             ? trailerId(item) : null;
+            removeTrailer();
+            syncTrailer(itemId);
+        } catch (e) {}
+    }
+
+    /* ------------------------------------------- greffe sur le menu de l'oeuvre */
+
+    /* L'identifiant est fige au moment du clic sur le bouton du menu : une fiche
+       peut contenir d'autres menus (episodes, suggestions) qui ouvriraient la
+       meme feuille d'actions pour un autre element. */
+    var cibleMenu = null;
+
+    document.addEventListener('click', function (e) {
+        var b = e.target && e.target.closest ? e.target.closest('.btnMoreCommands') : null;
+        cibleMenu = (b && b.closest('.detailPagePrimaryContainer')) ? currentItemId() : null;
+    }, true);
+
+    function greffeMenu() {
+        if (!cibleMenu) return;
+        var contenu = document.querySelector('.actionSheetContent');
+        if (!contenu || contenu.querySelector('[data-id="helou-trailer"]')) return;
+
+        var modele = contenu.querySelector('button.actionSheetMenuItem');
+        if (!modele) return;
+
+        var itemId = cibleMenu;
+        var b = modele.cloneNode(true);
+        b.setAttribute('data-id', 'helou-trailer');
+
+        var icone = b.querySelector('.actionsheetMenuItemIcon');
+        if (icone) icone.className = 'actionsheetMenuItemIcon listItemIcon '
+                                   + 'listItemIcon-transparent material-icons movie';
+
+        /* Le libelle est le seul noeud feuille porteur de texte du modele. */
+        var feuilles = [].slice.call(b.querySelectorAll('*')).filter(function (e) {
+            return e.children.length === 0 && e.textContent.trim();
+        });
+        if (feuilles.length) feuilles[0].textContent = 'Bande-annonce personnalisee';
+
+        /* On laisse Jellyfin fermer la feuille : son gestionnaire ignore les
+           identifiants qu'il ne connait pas. */
+        b.addEventListener('click', function () {
+            var ac = window.ApiClient;
+            setTimeout(async function () {
+                await chargerManuels(ac);
+                var item = await ac.getItem(ac.getCurrentUserId(), itemId);
+                ouvrirBoite(ac, itemId, item.Name || '', trailerAuto(item));
+            }, 60);
+        });
+
+        contenu.appendChild(b);
+    }
+
     /* ------------------------------------------------------------- pipeline */
 
     var enCours = false;
@@ -281,6 +494,7 @@
 
         enCours = true;
         try {
+            await chargerManuels(ac);
             var item = await ac.getItem(ac.getCurrentUserId(), id);
 
             if (existing) existing.remove();
@@ -308,7 +522,7 @@
     }
 
     var t = null;
-    function planifier() { clearTimeout(t); t = setTimeout(enrich, 150); }
+    function planifier() { greffeMenu(); clearTimeout(t); t = setTimeout(enrich, 150); }
 
     new MutationObserver(planifier).observe(document.body, { childList: true, subtree: true });
     window.addEventListener('hashchange', planifier);
