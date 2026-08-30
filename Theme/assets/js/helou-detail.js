@@ -11,6 +11,8 @@
       Distribution & equipe.
    3. Remplace les recommandations du bas de page par une grille des images
       d'arriere-plan de l'oeuvre consultee.
+   4. Joue la bande-annonce en fond de fiche, a la place de l'image d'arriere-
+      plan fixe. Muette et sans controles.
 
    Le masquage des emplacements d'origine est fait en CSS (bloc HELOU du theme).
    ============================================================================ */
@@ -181,13 +183,90 @@
         anchor.parentNode.insertBefore(sec, anchor.nextSibling);
     }
 
+    /* ------------------------------------------- bande-annonce en fond de fiche */
+
+    /* Jellyfin pose <meta name="referrer" content="no-referrer"> : sans en-tete
+       Referer, YouTube refuse l'integration avec l'erreur 153. L'attribut
+       referrerpolicy porte par l'iframe l'emporte sur la regle du document. */
+    var POLITIQUE_REFERRER = 'strict-origin-when-cross-origin';
+
+    function youtubeId(url) {
+        var m = String(url || '').match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/);
+        return m ? m[1] : null;
+    }
+
+    function trailerId(item) {
+        var liste = item.RemoteTrailers || [];
+        for (var i = 0; i < liste.length; i++) {
+            var v = youtubeId(liste[i].Url);
+            if (v) return v;
+        }
+        return null;
+    }
+
+    function removeTrailer() {
+        var w = document.querySelector('.helou-trailer');
+        if (w) w.remove();
+    }
+
+    function mountTrailer(itemId, videoId) {
+        var host = document.querySelector('.backdropContainer');
+        if (!host) return;
+
+        var w = document.querySelector('.helou-trailer');
+        /* Deja en place pour cette oeuvre et toujours rattache : ne pas
+           recharger, cela relancerait la video a chaque mutation du DOM. */
+        if (w && w.dataset.helouId === itemId && w.parentNode === host) return;
+        if (w) w.remove();
+
+        w = document.createElement('div');
+        w.className = 'helou-trailer';
+        w.dataset.helouId = itemId;
+        /* z-index : l'image d'arriere-plan est reinseree par Jellyfin apres nous,
+           il faut donc passer explicitement au-dessus. */
+        w.style.cssText = 'position:absolute;inset:0;overflow:hidden;pointer-events:none;'
+                        + 'z-index:2;opacity:0;transition:opacity 1.4s ease';
+
+        var f = document.createElement('iframe');
+        f.setAttribute('referrerpolicy', POLITIQUE_REFERRER);
+        f.setAttribute('frameborder', '0');
+        f.allow = 'autoplay; encrypted-media';
+        f.title = '';
+        /* 16/9 en couverture : on deborde sur l'axe le plus court. */
+        f.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);'
+                        + 'width:100vw;height:56.25vw;min-height:100vh;min-width:177.78vh;border:0';
+        f.src = 'https://www.youtube.com/embed/' + videoId
+              + '?autoplay=1&mute=1&controls=0&loop=1&playlist=' + videoId
+              + '&modestbranding=1&rel=0&playsinline=1&iv_load_policy=3'
+              + '&cc_load_policy=0&disablekb=1&fs=0&origin='
+              + encodeURIComponent(location.origin);
+
+        w.appendChild(f);
+        host.appendChild(w);
+        /* Le fondu masque le noir du lecteur pendant sa mise en route. */
+        setTimeout(function () { w.style.opacity = '1'; }, 400);
+    }
+
+    /* Memorise l'identifiant YouTube par oeuvre : les passages suivants de
+       enrich() sortent tot et n'ont plus l'objet complet sous la main. */
+    var trailers = Object.create(null);
+
+    function syncTrailer(id) {
+        var v = trailers[id];
+        if (v) mountTrailer(id, v);
+        else removeTrailer();
+    }
+
     /* ------------------------------------------------------------- pipeline */
 
     var enCours = false;
 
     async function enrich() {
         var id = currentItemId();
-        if (!id || enCours) return;
+        /* Sortie d'une fiche : la bande-annonce doit s'arreter, le conteneur
+           d'arriere-plan etant partage par toutes les pages. */
+        if (!id) { removeTrailer(); return; }
+        if (enCours) return;
 
         var host = document.querySelector('.itemMiscInfo-primary');
         if (!host || !host.parentNode) return;
@@ -195,7 +274,7 @@
         /* Deja traite pour cet element : on se contente de replacer l'equipe,
            que Jellyfin peut avoir reconstruite. */
         var existing = document.querySelector('.helou-info');
-        if (existing && existing.dataset.helouId === id) { moveCrew(); return; }
+        if (existing && existing.dataset.helouId === id) { moveCrew(); syncTrailer(id); return; }
 
         var ac = window.ApiClient;
         if (!ac || !ac.getCurrentUserId()) return;
@@ -217,6 +296,10 @@
 
             moveCrew();
             buildBackdrops(item, ac);
+
+            trailers[id] = (item.Type === 'Movie' || item.Type === 'Series')
+                         ? trailerId(item) : null;
+            syncTrailer(id);
         } catch (e) {
             /* Jellyfin peut avoir change de page en cours de route : sans gravite */
         } finally {
