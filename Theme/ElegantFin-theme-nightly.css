@@ -1426,7 +1426,7 @@ body:not(.hide-scroll) > .videoPlayerContainer {
 }
 
 .layout-mobile .itemBackdrop {
-    margin-top: 0;
+    margin-top: 0 !important;
     position: sticky;
     top: -30%;
     -webkit-mask: var(--itemBackdropMask);
@@ -1451,7 +1451,7 @@ body:not(.hide-scroll) > .videoPlayerContainer {
 }
 
 #itemDetailPage:has(.detailImageContainer .cardPadder-square > .person) .itemBackdrop {
-    height: calc(100vh - 8vh - var(--secondaryItemPageNegativeSpace));
+    height: calc(100vh - 4vh - var(--secondaryItemPageNegativeSpace));
 }
 
 .detailLogo {
@@ -3064,8 +3064,13 @@ div[data-role="controlgroup"] a.ui-btn-active {
     align-items: baseline;
 }
 
-.detailsGroupItem:not(:last-child) {
+.detailsGroupItem:not(:last-child),
+.itemDetailsGroup > div:not(:last-child) {
     border-bottom: var(--defaultBorder);
+}
+
+.itemDetailsGroup > div:empty {
+    border-bottom: none;
 }
 
 .detailsGroupItem > .label {
@@ -3073,12 +3078,12 @@ div[data-role="controlgroup"] a.ui-btn-active {
     flex-basis: 6em;
 }
 
-.detailsGroupItem > .content > a {
+.detailsGroupItem > .focuscontainer-x a {
     font-weight: 400;
     text-align: end;
 }
 
-.detailsGroupItem > .content {
+.detailsGroupItem > .focuscontainer-x {
     text-align: end;
     color: var(--dimTextColor);
 }
