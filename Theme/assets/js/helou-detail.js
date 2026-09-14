@@ -226,6 +226,42 @@
         anchor.parentNode.insertBefore(sec, anchor.nextSibling);
     }
 
+    /* ------------------------------------- barres systeme des clients mobiles */
+
+    /* Jellyfin pose <meta name="theme-color" content="#202020">, dont les
+       applications Android se servent pour teindre la barre d'etat. On aligne
+       cette valeur sur le fond du theme pour que les barres cessent de jurer.
+       Une vraie transparence des barres systeme releve de l'application
+       native : elle n'est pas atteignable depuis la page. */
+    function accorderBarresSysteme() {
+        var fond = getComputedStyle(document.body)
+            .getPropertyValue('--darkerGradientPoint').trim();
+        if (!fond) return;
+
+        /* --darkerGradientPoint est en hsl() ; le navigateur la convertit en
+           rgb() si on la fait resoudre par une propriete de couleur. */
+        var sonde = document.createElement('span');
+        sonde.style.color = fond;
+        sonde.style.display = 'none';
+        document.body.appendChild(sonde);
+        var rgb = getComputedStyle(sonde).color;
+        sonde.remove();
+
+        var m = rgb.match(/\d+/g);
+        if (!m || m.length < 3) return;
+        var hex = '#' + m.slice(0, 3).map(function (v) {
+            return ('0' + parseInt(v, 10).toString(16)).slice(-2);
+        }).join('');
+
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (!meta) {
+            meta = document.createElement('meta');
+            meta.setAttribute('name', 'theme-color');
+            document.head.appendChild(meta);
+        }
+        meta.setAttribute('content', hex);
+    }
+
     /* ------------------------------------------------------------- pipeline */
 
     var enCours = false;
@@ -284,6 +320,10 @@
 
     var t = null;
     function planifier() { clearTimeout(t); t = setTimeout(enrich, 150); }
+
+    /* Le theme arrive par @import : on laisse le temps aux variables d'etre
+       resolues avant de lire la couleur de fond. */
+    setTimeout(accorderBarresSysteme, 2000);
 
     new MutationObserver(planifier).observe(document.body, { childList: true, subtree: true });
     window.addEventListener('hashchange', planifier);

@@ -230,3 +230,90 @@
 .detailPagePrimaryContainer .originalTitle {
     display: none !important;
 }
+
+/* ==========================================================================
+   ===== HELOU : AJUSTEMENTS ================================================
+   ========================================================================== */
+
+/* --- 1. Aspect plat : plus aucun contour -------------------------------- */
+/* ElegantFin dessine ses contours a partir de deux variables ; les mettre a
+   zero desactive l'ensemble sans avoir a enumerer les selecteurs. Le reste
+   est pose en dur dans le theme ou par MUI, d'ou la liste ci-dessous. */
+:root,
+body,
+.layout-desktop body,
+.layout-mobile body {
+    --borderWidth: 0px;
+    --borderWidthDouble: 0px;
+}
+
+.cardScalable,
+.cardBox,
+.cardImageContainer,
+.cardOverlayButton,
+.trackSelections,
+.detailTrackSelect,
+.button-flat,
+.playedIndicator,
+.indicator,
+.emby-select,
+.emby-input,
+.raised,
+.MuiPaper-root,
+.MuiAvatar-root,
+.helou-chip {
+    border: 0 !important;
+}
+
+/* Cartouches : le contour cede la place a un aplat tres leger */
+.helou-chip-res,
+.helou-chip-codec,
+.helou-chip-sdr,
+.helou-chip-hdr {
+    background: hsla(0, 0%, 100%, 0.05) !important;
+}
+
+.helou-chip-hdr {
+    color: var(--accentColor) !important;
+}
+
+/* --- 2. Bloc video/audio : centre, largeur limitee en desktop ------------ */
+/* Il occupait la derniere colonne de la grille de .detailSection, donc le
+   bord droit. On lui donne toute la largeur de grille puis on le recentre ;
+   le min() lui laisse toute la place disponible en mobile. */
+.trackSelections {
+    grid-column: 1 / -1 !important;
+    justify-self: center !important;
+    width: min(100%, 44em) !important;
+    max-width: none !important;
+}
+
+/* --- 3. Index alphabetique des bibliotheques ---------------------------- */
+.alphaPicker-fixed-right {
+    display: none !important;
+}
+
+/* --- 4. Logo de la serie sur les fiches d'episode ------------------------ */
+/* ElegantFin masque le logo des qu'une vignette occupe le centre de la fiche
+   (regle "this hides the detail logo when media card is visible"). On le
+   remontre, plus petit et remonte au-dessus de la vignette. Le :not(.hide)
+   evite de reserver la place quand l'oeuvre n'a pas de logo : Jellyfin pose
+   alors la classe `hide` et le titre texte reprend sa place normalement. */
+#itemDetailPage:has(.detailImageContainer .backdropCard) .detailLogo:not(.hide) {
+    display: block !important;
+    height: 10vh !important;
+    top: calc(100vh - 6em - var(--secondaryItemPageNegativeSpace) - 23vh) !important;
+}
+
+#itemDetailPage:has(.detailImageContainer .backdropCard):has(.detailLogo:not(.hide)) .nameContainer h1 {
+    display: none !important;
+}
+
+/* --- 5. Defilement horizontal : extremite droite hors ecran ------------- */
+/* Les carrousels portent padding-right: X avec margin-right: -X. La zone de
+   padding depasse alors le bord droit de la fenetre, emportant avec elle la
+   fin de la barre de defilement et de la derniere vignette. */
+.emby-scroller.scrollX {
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+}
