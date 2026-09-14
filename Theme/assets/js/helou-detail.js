@@ -65,6 +65,20 @@
         return d;
     }
 
+    /* Jellyfin 12 conserve les pages precedentes dans le DOM, masquees par la
+       classe `hide`, et elles precedent la page active en ordre de document.
+       Un document.querySelector('.itemMiscInfo-primary') tombait donc sur la
+       fiche precedente : les cartouches etaient bien construites, mais dans une
+       page invisible. Tout doit etre requete depuis la page active. */
+    function racine() {
+        var pages = document.querySelectorAll('#itemDetailPage, .itemDetailPage');
+        for (var i = pages.length - 1; i >= 0; i--) {
+            var p = pages[i];
+            if (!p.classList.contains('hide') && p.getBoundingClientRect().height > 0) return p;
+        }
+        return null;
+    }
+
     function currentItemId() {
         var h = location.hash || '';
         if (h.indexOf('/details') === -1) return null;
@@ -75,7 +89,7 @@
 
     /* ------------------------------------------------------- rangee du haut */
 
-    function buildChips(item, host) {
+    function buildChips(item, host, page) {
         var row = document.createElement('div');
         row.className = 'helou-chips';
 
@@ -105,7 +119,7 @@
         /* Heure de fin, sur sa propre ligne sous les cartouches. Jellyfin 12
            l'affiche nativement dans .itemMiscInfo-primary, que le CSS masque :
            on en recopie le texte plutot que de le recalculer. */
-        var src = document.querySelector('.itemMiscInfo-primary .endsAt');
+        var src = page.querySelector('.itemMiscInfo-primary .endsAt');
         if (src && src.textContent.trim()) {
             var e = document.createElement('div');
             e.className = 'helou-endsat';
@@ -133,11 +147,11 @@
         return g;
     }
 
-    function buildCrew(item) {
-        var anchor = document.querySelector('#castCollapsible');
+    function buildCrew(item, page) {
+        var anchor = page.querySelector('#castCollapsible');
         if (!anchor || !anchor.parentNode) return;
 
-        var old = document.querySelector('.helou-crew');
+        var old = page.querySelector('.helou-crew');
         if (old) old.remove();
 
         var gens = item.People || [];
@@ -166,11 +180,11 @@
 
     /* --------------------------------------------- grille des arriere-plans */
 
-    function buildBackdrops(item, ac) {
-        var anchor = document.querySelector('#similarCollapsible');
+    function buildBackdrops(item, ac, page) {
+        var anchor = page.querySelector('#similarCollapsible');
         if (!anchor || !anchor.parentNode) return;
 
-        var old = document.querySelector('.helou-backdrops');
+        var old = page.querySelector('.helou-backdrops');
         if (old) old.remove();
 
         var tags = item.BackdropImageTags || [];
@@ -220,18 +234,21 @@
         var id = currentItemId();
         if (!id || enCours) return;
 
-        var host = document.querySelector('.itemMiscInfo-primary');
+        var page = racine();
+        if (!page) return;
+
+        var host = page.querySelector('.itemMiscInfo-primary');
         if (!host || !host.parentNode) return;
 
         /* Deja traite pour cet element. Jellyfin 12 re-rend les sections du bas
            apres coup : on rejoue equipe et images si elles ont ete balayees. */
-        var existing = document.querySelector('.helou-info');
+        var existing = page.querySelector('.helou-info');
         if (existing && existing.dataset.helouId === id) {
-            if (!document.querySelector('.helou-crew') || !document.querySelector('.helou-backdrops')) {
+            if (!page.querySelector('.helou-crew') || !page.querySelector('.helou-backdrops')) {
                 var cache = window.__helouItem;
                 if (cache && cache.Id === id) {
-                    buildCrew(cache);
-                    buildBackdrops(cache, window.ApiClient);
+                    buildCrew(cache, page);
+                    buildBackdrops(cache, window.ApiClient, page);
                 }
             }
             return;
@@ -253,11 +270,11 @@
             /* Permet au CSS de cibler les series (casting et equipe masques). */
             document.documentElement.dataset.helouType = item.Type || '';
 
-            buildChips(item, info);
+            buildChips(item, info, page);
             host.parentNode.insertBefore(info, host.nextSibling);
 
-            buildCrew(item);
-            buildBackdrops(item, ac);
+            buildCrew(item, page);
+            buildBackdrops(item, ac, page);
         } catch (e) {
             /* Jellyfin peut avoir change de page en cours de route : sans gravite */
         } finally {
