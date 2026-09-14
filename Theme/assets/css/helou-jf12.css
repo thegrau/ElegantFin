@@ -1,0 +1,232 @@
+/* ==========================================================================
+   HELOU - Personnalisations du theme, Jellyfin 12
+   --------------------------------------------------------------------------
+   A charger EN DERNIER, apres les trois feuilles amont. Le CSS personnalise
+   du tableau de bord doit contenir, dans cet ordre :
+
+     1. ElegantFin            lscambo13/ElegantFin
+     2. Add-on Media Bar      lscambo13/ElegantFin (inoffensif sans le plugin)
+     3. Compatibilite JF12    mihaif7/elegantfin-jf12
+     4. ce fichier
+
+   L'ordre compte : la couche 3 remappe le theme MUI de Jellyfin 12 sur les
+   variables d'ElegantFin (--jf-palette-primary-main: var(--accentColor)...).
+   Comme les variables CSS se resolvent a l'usage, redefinir --accentColor ici
+   se propage a tout l'habillage de la 12 sans rien reecrire.
+
+   La section FICHES DE MEDIA accompagne Theme/assets/js/helou-detail.js.
+   Sans ce script, elle ne fait que masquer des elements natifs.
+   ========================================================================== */
+
+/* ==========================================================================
+   ===== HELOU : SURCHARGE DE PALETTE =======================================
+   Neutralise le bleu/indigo d'origine au profit d'un gris neutre, et reserve
+   le violet a la selection et aux etats actifs.
+   Les luminosites d'origine sont conservees : seules la teinte et la
+   saturation changent, donc les contrastes restent identiques.
+   Bloc volontairement isole en fin de fichier pour survivre aux
+   "git fetch upstream" sans conflit.
+   ========================================================================== */
+:root {
+    /* --- Accent : violet, la seule couleur vive du theme --- */
+    --accentColor: hsl(258, 90%, 66%);
+    --accentHoverColor: hsl(255, 92%, 76%);
+    --semiTransparentAccentColor: hsla(258, 90%, 66%, 0.22);
+    --checkboxCheckedBgColor: hsl(258, 90%, 60%);
+    --highlightOutlineColor: hsl(258, 90%, 66%);
+    --btnSubmitColor: hsl(258, 70%, 48%);
+    --btnSubmitBorderColor: hsl(258, 90%, 70%);
+
+    /* --- Structure : gris neutres (teinte et saturation a zero) --- */
+    --borderColor: hsl(0, 0%, 32%);
+    --darkerBorderColor: hsl(0, 0%, 22%);
+    --selectorBackgroundColor: hsl(0, 0%, 24%);
+    --selectorBackgroundColorAlpha: hsla(0, 0%, 24%, 0.5);
+    --tableBodyColor: hsl(0, 0%, 15%);
+
+    /* --- Barre du haut et tiroir lateral --- */
+    --headerColor: hsla(0, 0%, 9%, 0.8);
+    --drawerColor: hsla(0, 0%, 9%, 0.9);
+    --headerColorGradient: linear-gradient(180deg, hsla(0, 0%, 9%, 0.95) 30%, 55%, transparent);
+    --headerColorGradientAlt: linear-gradient(180deg, hsl(0, 0%, 9%), 70%, transparent);
+
+    /* --- Fonds et degrades --- */
+    --darkerGradientPoint: hsl(0, 0%, 7%);
+    --lighterGradientPoint: hsl(0, 0%, 12%);
+    --darkerGradientPointAlpha: hsla(0, 0%, 7%, 0.85);
+    --lighterGradientPointAlpha: hsla(0, 0%, 12%, 0.85);
+    --gradientPointAlpha: hsla(0, 0%, 12%, 0.3);
+
+    /* --- Textes : gris neutres au lieu des gris froids --- */
+    --textColor: hsl(0, 0%, 84%);
+    --dimTextColor: hsl(0, 0%, 64%);
+
+    /* --- Signature du pied de page --- */
+    --elegantFinFooterText: "Helou / ED209";
+}
+
+/* ==========================================================================
+   ===== HELOU : FICHES DE MEDIA (Jellyfin 12) ==============================
+   Accompagne helou-detail.js. Sans ce script, les cartouches ne sont pas
+   construites et cette section ne fait que masquer des elements natifs.
+   Portage 10.x -> 12 : .itemDetailsGroup remplace les anciens
+   .detailsGroupItem.genresGroup / .studiosGroup, qui n'existent plus.
+   ========================================================================== */
+
+/* --- Emplacements natifs, remplaces par les cartouches ------------------- */
+.itemMiscInfo-primary,
+.itemMiscInfo-secondary,
+.itemDetailsGroup,
+.starRatingContainer,
+.mediaInfoCriticRating,
+.mediaInfoCriticRatingFresh,
+.mediaInfoCriticRatingRotten,
+.itemExternalLinks,
+#similarCollapsible {
+    display: none !important;
+}
+
+/* --- Rangee de cartouches ----------------------------------------------- */
+.helou-info {
+    margin: 0.9em 0 0.4em 0;
+}
+
+.helou-chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+}
+
+.helou-chip {
+    background: hsla(0, 0%, 100%, 0.08);
+    border: 1px solid hsla(0, 0%, 100%, 0.08);
+    border-radius: 999px;
+    padding: 0.28em 0.85em;
+    margin: 0 !important;
+    font-size: 0.78em;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    line-height: 1.6;
+    white-space: nowrap;
+    color: var(--textColor);
+}
+
+/* Annee et duree en violet, comme le reste du theme */
+.helou-chip-year,
+.helou-chip-runtime {
+    background: var(--accentColor);
+    border-color: transparent;
+    color: #fff;
+}
+
+/* Qualite video : contour plutot qu'aplat, pour rester discret */
+.helou-chip-res,
+.helou-chip-codec,
+.helou-chip-sdr,
+.helou-chip-hdr {
+    background: transparent;
+    border-color: var(--borderColor);
+    color: var(--dimTextColor);
+}
+
+/* Le HDR merite d'etre repere d'un coup d'oeil */
+.helou-chip-hdr {
+    border-color: var(--accentColor);
+    color: var(--accentColor);
+}
+
+/* --- Heure de fin, sous les cartouches ---------------------------------- */
+.helou-endsat {
+    margin-top: 0.55em;
+    text-align: center;
+    font-size: 0.82em;
+    font-weight: 500;
+    color: var(--dimTextColor);
+}
+
+/* --- Realisation et scenario, au-dessus de la distribution -------------- */
+.helou-crew {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4em 2.5em;
+    margin: 0 0 1.4em 0;
+}
+
+.helou-crew-group {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5em;
+}
+
+.helou-crew .label {
+    font-size: 0.7em;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--dimTextColor);
+}
+
+.helou-crew-names {
+    color: var(--textColor);
+}
+
+/* --- Grille des images d'arriere-plan ----------------------------------- */
+.helou-backdrops {
+    margin-top: 1.5em;
+}
+
+.helou-backdrops-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.9em;
+}
+
+.helou-backdrop {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: var(--largeRadius, 0.8em);
+    background: hsla(0, 0%, 100%, 0.04);
+    box-shadow: var(--cardShadow, none);
+}
+
+.helou-backdrop img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.45s ease;
+}
+
+.helou-backdrop:hover img {
+    transform: scale(1.04);
+}
+
+@media (max-width: 50em) {
+    .helou-backdrops-grid { grid-template-columns: 1fr; }
+}
+
+/* --- Synopsis : pas de troncature --------------------------------------- */
+.overview-expand,
+.detail-clamp-text-button {
+    display: none !important;
+}
+
+.detail-clamp-text,
+.overview.detail-clamp-text {
+    -webkit-line-clamp: unset !important;
+    line-clamp: unset !important;
+    max-height: none !important;
+    overflow: visible !important;
+    display: block !important;
+}
+
+/* --- Titre original : doublonnait avec le logo et le chevauchait ---------- */
+/* La variable --itemOriginalTitleVisibility est posee sur `body` par le
+   theme ; la redefinir sur :root ne suffit donc pas. On masque le noeud. */
+.detailPagePrimaryContainer .originalTitle {
+    display: none !important;
+}

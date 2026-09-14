@@ -1,21 +1,31 @@
 /* ============================================================================
-   HELOU - Enrichissement des fiches de media pour Jellyfin
+   HELOU - Enrichissement des fiches de media - Jellyfin 12 ("Modern")
    ----------------------------------------------------------------------------
-   Accompagne le theme ElegantFin (fork Helou). Ce script est necessaire parce
-   que la resolution, le codec et la plage dynamique n'existent nulle part dans
-   le DOM d'une fiche : seule l'API les expose.
+   Accompagne ElegantFin + la couche de compatibilite elegantfin-jf12.
+   Ce script existe parce que la resolution, le codec et la plage dynamique
+   n'apparaissent nulle part dans le DOM d'une fiche : seule l'API les expose.
 
-   1. Construit une rangee de cartouches : annee, duree, genres, studio,
-      resolution, codec, SDR/HDR - puis l'heure de fin en dessous.
-   2. Deplace realisateurs et scenaristes juste au-dessus du carrousel
-      Distribution & equipe.
-   3. Remplace les recommandations du bas de page par une grille des images
-      d'arriere-plan de l'oeuvre consultee.
+   1. Cartouches sous le titre : annee, duree, genres, studio, resolution,
+      codec, SDR/HDR - puis l'heure de fin en dessous.
+   2. Realisation et scenario, juste au-dessus de "Distribution & equipe".
+   3. Grille des images d'arriere-plan a la place des recommandations.
 
-   Le masquage des emplacements d'origine est fait en CSS (bloc HELOU du theme).
+   Le masquage des emplacements d'origine est fait en CSS (bloc HELOU).
+
+   NOTE DE PORTAGE 10.x -> 12.0
+   Jellyfin 12 a reconstruit le tableau de metadonnees en composants MUI :
+   les classes .detailsGroupItem.directorsGroup / .writersGroup / .genresGroup
+   / .studiosGroup ont disparu, il ne reste que .detailsGroupItem sans
+   qualificatif. L'ancienne version deplacait ces noeuds ; elle ne pouvait donc
+   plus les retrouver. On ne deplace plus rien : le bloc equipe est reconstruit
+   a partir de item.People, ce qui ne depend ni des classes ni de la langue.
    ============================================================================ */
 (function () {
     'use strict';
+
+    /* Libelles du bloc equipe. Le DOM de la 12 n'expose plus de classe
+       permettant de les recuperer ; ils sont donc poses ici. */
+    var LIB = { director: 'Realisation', writer: 'Scenario', images: 'Images' };
 
     /* ---------------------------------------------------------------- outils */
 
@@ -92,7 +102,9 @@
 
         host.appendChild(row);
 
-        /* Heure de fin, sur sa propre ligne sous les cartouches */
+        /* Heure de fin, sur sa propre ligne sous les cartouches. Jellyfin 12
+           l'affiche nativement dans .itemMiscInfo-primary, que le CSS masque :
+           on en recopie le texte plutot que de le recalculer. */
         var src = document.querySelector('.itemMiscInfo-primary .endsAt');
         if (src && src.textContent.trim()) {
             var e = document.createElement('div');
@@ -102,42 +114,61 @@
         }
     }
 
-    /* ------------------------------------ realisateurs / scenaristes deplaces */
+    /* ------------------------------------------- realisation et scenario */
 
-    function moveCrew() {
-        var cast = document.querySelector('#castCollapsible');
-        var castVisible = cast && !cast.classList.contains('hide');
+    function crewGroup(label, gens) {
+        var g = document.createElement('div');
+        g.className = 'helou-crew-group';
 
-        /* Point d'ancrage de repli : sans casting visible, on se rabat sur la
-           section de details. Sans ce repli, les groupes restaient dans
-           .itemDetailsGroup - masque par le theme - et disparaissaient. */
-        var ancre = castVisible ? cast
-                  : document.querySelector('.trackSelections')
-                  || document.querySelector('.detailSectionContent');
-        if (!ancre || !ancre.parentNode) return;
+        var l = document.createElement('span');
+        l.className = 'label';
+        l.textContent = label;
+        g.appendChild(l);
 
-        var wrap = document.querySelector('.helou-crew');
-        if (!wrap) {
-            wrap = document.createElement('div');
-            wrap.className = 'helou-crew';
-        }
+        var n = document.createElement('span');
+        n.className = 'helou-crew-names';
+        n.textContent = gens.join(', ');
+        g.appendChild(n);
 
-        ['directorsGroup', 'writersGroup'].forEach(function (k) {
-            var g = document.querySelector('.detailsGroupItem.' + k);
-            if (g && g.parentNode !== wrap) wrap.appendChild(g);
-        });
+        return g;
+    }
 
-        if (wrap.children.length && !wrap.parentNode) {
-            if (castVisible) ancre.parentNode.insertBefore(wrap, ancre);
-            else ancre.parentNode.insertBefore(wrap, ancre.nextSibling);
-        }
+    function buildCrew(item) {
+        var anchor = document.querySelector('#castCollapsible');
+        if (!anchor || !anchor.parentNode) return;
+
+        var old = document.querySelector('.helou-crew');
+        if (old) old.remove();
+
+        var gens = item.People || [];
+        var uniq = function (type) {
+            var vus = {};
+            return gens.filter(function (p) { return p.Type === type; })
+                       .map(function (p) { return p.Name; })
+                       .filter(function (n) {
+                           if (!n || vus[n]) return false;
+                           vus[n] = 1;
+                           return true;
+                       });
+        };
+
+        var real = uniq('Director');
+        var scen = uniq('Writer');
+        if (!real.length && !scen.length) return;
+
+        var wrap = document.createElement('div');
+        wrap.className = 'helou-crew';
+        if (real.length) wrap.appendChild(crewGroup(LIB.director, real));
+        if (scen.length) wrap.appendChild(crewGroup(LIB.writer, scen));
+
+        anchor.parentNode.insertBefore(wrap, anchor);
     }
 
     /* --------------------------------------------- grille des arriere-plans */
 
     function buildBackdrops(item, ac) {
         var anchor = document.querySelector('#similarCollapsible');
-        if (!anchor) return;
+        if (!anchor || !anchor.parentNode) return;
 
         var old = document.querySelector('.helou-backdrops');
         if (old) old.remove();
@@ -157,7 +188,7 @@
 
         var title = document.createElement('h2');
         title.className = 'sectionTitle';
-        title.textContent = 'Images';
+        title.textContent = LIB.images;
         sec.appendChild(title);
 
         var grid = document.createElement('div');
@@ -192,10 +223,19 @@
         var host = document.querySelector('.itemMiscInfo-primary');
         if (!host || !host.parentNode) return;
 
-        /* Deja traite pour cet element : on se contente de replacer l'equipe,
-           que Jellyfin peut avoir reconstruite. */
+        /* Deja traite pour cet element. Jellyfin 12 re-rend les sections du bas
+           apres coup : on rejoue equipe et images si elles ont ete balayees. */
         var existing = document.querySelector('.helou-info');
-        if (existing && existing.dataset.helouId === id) { moveCrew(); return; }
+        if (existing && existing.dataset.helouId === id) {
+            if (!document.querySelector('.helou-crew') || !document.querySelector('.helou-backdrops')) {
+                var cache = window.__helouItem;
+                if (cache && cache.Id === id) {
+                    buildCrew(cache);
+                    buildBackdrops(cache, window.ApiClient);
+                }
+            }
+            return;
+        }
 
         var ac = window.ApiClient;
         if (!ac || !ac.getCurrentUserId()) return;
@@ -203,6 +243,7 @@
         enCours = true;
         try {
             var item = await ac.getItem(ac.getCurrentUserId(), id);
+            window.__helouItem = item;
 
             if (existing) existing.remove();
             var info = document.createElement('div');
@@ -215,7 +256,7 @@
             buildChips(item, info);
             host.parentNode.insertBefore(info, host.nextSibling);
 
-            moveCrew();
+            buildCrew(item);
             buildBackdrops(item, ac);
         } catch (e) {
             /* Jellyfin peut avoir change de page en cours de route : sans gravite */
