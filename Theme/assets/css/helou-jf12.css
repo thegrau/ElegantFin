@@ -317,3 +317,63 @@ body,
     padding-right: 0 !important;
     margin-right: 0 !important;
 }
+
+/* ==========================================================================
+   ===== HELOU : ESPACEMENTS (ORDINATEUR UNIQUEMENT) ========================
+   Tout ce bloc est limite a .layout-desktop : l'affichage mobile reste
+   exactement celui du theme.
+   ========================================================================== */
+
+.layout-desktop body {
+    /* Le theme laissait l'image d'accueil occuper presque toute la hauteur :
+       logo, cartouches et resume tombaient sous la ligne de flottaison.
+       --primaryItemPageNegativeSpace est la remontee que le theme applique au
+       contenu par-dessus l'image ; on l'augmente de 24vh.
+       Les fiches d'episode passent par --secondaryItemPageNegativeSpace et
+       tiennent deja dans l'ecran : on n'y touche pas, sous peine d'envoyer
+       leur logo au-dessus du bord superieur. */
+    --primaryItemPageNegativeSpace: calc(14vh + 24vh);
+
+    /* Le logo est ancre par le bas a cette distance. L'augmenter le remonte
+       par rapport aux cartouches : comme sa boite est ancree par le bas, le
+       chevauchement devient impossible quelle que soit la forme du logo. */
+    --clearLogoBottomSpace: 15em;
+}
+
+/* Le conteneur du resume reservait une hauteur fixe (min-height) et collait
+   son contenu en bas (align-content: end), d'ou le grand vide entre les
+   boutons d'action et le texte. */
+.layout-desktop .detailSectionContent {
+    min-height: 0 !important;
+    align-content: start !important;
+}
+
+/* Resume un peu plus grand, pour qu'il ressorte davantage */
+.layout-desktop .overview {
+    font-size: 1.15em !important;
+    line-height: 1.55 !important;
+}
+
+/* --- Titres en tete du bloc video/audio ---------------------------------- */
+/* Construits par helou-detail.js : titre courant, puis titre original s'il
+   differe. Reserves au bureau, l'affichage mobile etant deja au point. */
+.helou-titres {
+    margin: 0 0 0.7em 0;
+}
+
+.helou-titre {
+    font-size: 1.08em;
+    font-weight: 600;
+    color: var(--textColor);
+    line-height: 1.35;
+}
+
+.helou-titre-original {
+    font-size: 0.92em;
+    color: var(--dimTextColor);
+    line-height: 1.35;
+}
+
+.layout-mobile .helou-titres {
+    display: none;
+}

@@ -178,6 +178,37 @@
         anchor.parentNode.insertBefore(wrap, anchor);
     }
 
+    /* ------------------------------- titres en tete du bloc video / audio */
+
+    function buildTitres(item, page) {
+        var host = page.querySelector('.trackSelections');
+        if (!host) return;
+
+        var old = page.querySelector('.helou-titres');
+        if (old) old.remove();
+
+        if (!item.Name) return;
+
+        var wrap = document.createElement('div');
+        wrap.className = 'helou-titres';
+
+        var t = document.createElement('div');
+        t.className = 'helou-titre';
+        t.textContent = item.Name;
+        wrap.appendChild(t);
+
+        /* Le titre original n'est affiche que s'il apporte quelque chose */
+        var vo = (item.OriginalTitle || '').trim();
+        if (vo && vo !== item.Name.trim()) {
+            var o = document.createElement('div');
+            o.className = 'helou-titre-original';
+            o.textContent = vo;
+            wrap.appendChild(o);
+        }
+
+        host.insertBefore(wrap, host.firstChild);
+    }
+
     /* --------------------------------------------- grille des arriere-plans */
 
     function buildBackdrops(item, ac, page) {
@@ -280,9 +311,12 @@
            apres coup : on rejoue equipe et images si elles ont ete balayees. */
         var existing = page.querySelector('.helou-info');
         if (existing && existing.dataset.helouId === id) {
-            if (!page.querySelector('.helou-crew') || !page.querySelector('.helou-backdrops')) {
+            if (!page.querySelector('.helou-crew') ||
+                !page.querySelector('.helou-backdrops') ||
+                !page.querySelector('.helou-titres')) {
                 var cache = window.__helouItem;
                 if (cache && cache.Id === id) {
+                    buildTitres(cache, page);
                     buildCrew(cache, page);
                     buildBackdrops(cache, window.ApiClient, page);
                 }
@@ -309,6 +343,7 @@
             buildChips(item, info, page);
             host.parentNode.insertBefore(info, host.nextSibling);
 
+            buildTitres(item, page);
             buildCrew(item, page);
             buildBackdrops(item, ac, page);
         } catch (e) {
